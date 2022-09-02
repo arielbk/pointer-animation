@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { MouseEvent, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Cell, { CELL_SIZE } from './Cell';
 
 const Container = styled.div<{ columns: number }>`
@@ -55,6 +55,7 @@ function Grid() {
   return (
     <Container columns={columns}>
       {Array.from({ length: columns * rows })
+        // {Array.from({ length: 1 })
         .fill('')
         .map((_, i) => (
           <Cell key={i} mouse={mouse} />

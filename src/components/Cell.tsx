@@ -8,15 +8,16 @@ export const CELL_SIZE = 80;
 const Container = styled.div`
   width: ${CELL_SIZE}px;
   height: ${CELL_SIZE}px;
-  border: 1px dashed #777;
+  border: 1px dashed #333;
   display: flex;
   justify-content: center;
   align-items: center;
 `;
 
-const Content = styled(motion.div)`
+const Content = styled(motion.div)<{ direction: number }>`
   font-size: 2rem;
-  color: #777;
+  color: #333;
+  rotate: ${(props) => props.direction + 'deg'};
 `;
 
 interface CellProps {
@@ -40,17 +41,16 @@ const Cell: React.FC<CellProps> = ({ mouse }) => {
   }, []);
 
   useEffect(() => {
+    const diffY = mouse[1] - position[1];
     const diffX = mouse[0] - position[0];
-    if (diffX < 0) {
-      setDirection(-1);
-    } else {
-      setDirection(1);
-    }
+    const angleRadians = Math.atan2(diffY, diffX);
+    const angleDegrees = Math.floor(angleRadians * (180 / Math.PI));
+    setDirection(angleDegrees);
   }, [mouse]);
 
   return (
     <Container ref={ref}>
-      <Content animate={{ rotate: direction * 90 }}>↑</Content>
+      <Content direction={direction}>→</Content>
     </Container>
   );
 };
