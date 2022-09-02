@@ -1,7 +1,6 @@
 import styled from '@emotion/styled';
-import { useEffect, useState } from 'react';
-
-const CELL_SIZE = 80;
+import { MouseEvent, useEffect, useState } from 'react';
+import Cell, { CELL_SIZE } from './Cell';
 
 const Container = styled.div<{ columns: number }>`
   position: absolute;
@@ -14,16 +13,14 @@ const Container = styled.div<{ columns: number }>`
   grid-template-columns: repeat(${(props) => props.columns}, 1fr);
 `;
 
-const Cell = styled.div`
-  width: ${CELL_SIZE}px;
-  height: ${CELL_SIZE}px;
-  border: 1px dashed #777;
-`;
+export type Coordinate = [number, number];
 
 function Grid() {
   const [columns, setColumns] = useState(0);
   const [rows, setRows] = useState(0);
+  const [mouse, setMouse] = useState<Coordinate>([0, 0]);
 
+  // determine rows and columns
   useEffect(() => {
     // possibly use a resize observer here instead
     if (typeof window === 'undefined') return;
@@ -43,12 +40,24 @@ function Grid() {
     };
   }, []);
 
+  // determine mouse position
+  useEffect(() => {
+    const calculateMousePosition = (e: globalThis.MouseEvent) => {
+      setMouse([e.clientX, e.clientY]);
+    };
+    window.addEventListener('mousemove', calculateMousePosition);
+    // cleanup
+    return () => {
+      window.removeEventListener('mousemove', calculateMousePosition);
+    };
+  }, []);
+
   return (
     <Container columns={columns}>
       {Array.from({ length: columns * rows })
         .fill('')
         .map((_, i) => (
-          <Cell key={i} />
+          <Cell key={i} mouse={mouse} />
         ))}
     </Container>
   );
