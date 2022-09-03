@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionValue, useTransform } from 'framer-motion';
 import { Coordinate } from './Grid';
 
 export const CELL_SIZE = 60;
@@ -9,25 +9,29 @@ const Container = styled.div`
   width: ${CELL_SIZE}px;
   height: ${CELL_SIZE}px;
   border: 1px dashed #777;
+  margin: -1px;
   display: flex;
   justify-content: center;
   align-items: center;
-`;
-
-const Content = styled(motion.div)<{ direction: number }>`
-  font-size: 2rem;
-  color: #777;
-  rotate: ${(props) => props.direction + 'deg'};
+  user-select: none;
 `;
 
 interface CellProps {
-  mouse: Coordinate;
+  mouseX: MotionValue<number>;
+  mouseY: MotionValue<number>;
 }
 
-const Cell: React.FC<CellProps> = ({ mouse }) => {
+const Cell: React.FC<CellProps> = ({ mouseX, mouseY }) => {
   const [position, setPosition] = useState<Coordinate>([0, 0]);
-  const [direction, setDirection] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
+
+  const direction = useTransform([mouseX, mouseY], ([newX, newY]) => {
+    const diffY = (newY as number) - position[1];
+    const diffX = (newX as number) - position[0];
+    const angleRadians = Math.atan2(diffY, diffX);
+    const angleDegrees = Math.floor(angleRadians * (180 / Math.PI));
+    return angleDegrees;
+  });
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -40,17 +44,11 @@ const Cell: React.FC<CellProps> = ({ mouse }) => {
     setPosition([x, y]);
   }, []);
 
-  useEffect(() => {
-    const diffY = mouse[1] - position[1];
-    const diffX = mouse[0] - position[0];
-    const angleRadians = Math.atan2(diffY, diffX);
-    const angleDegrees = Math.floor(angleRadians * (180 / Math.PI));
-    setDirection(angleDegrees);
-  }, [mouse]);
-
   return (
     <Container ref={ref}>
-      <Content direction={direction}>→</Content>
+      <motion.div style={{ pointerEvents: 'none', rotate: direction }}>
+        →
+      </motion.div>
     </Container>
   );
 };

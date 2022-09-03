@@ -41,16 +41,18 @@ function Grid() {
   const [mouse, setMouse] = useState<Coordinate>([0, 0]);
 
   const mouseX = useMotionValue(0);
+  const mouseXEased = useMotionValue(0);
   const mouseY = useMotionValue(0);
+  const mouseYEased = useMotionValue(0);
 
-  const mouseXVelocity = useVelocity(mouseX);
-  const mouseYVelocity = useVelocity(mouseY);
+  const mouseXVelocity = useVelocity(mouseXEased);
+  const mouseYVelocity = useVelocity(mouseYEased);
   const change = useTransform(
     [mouseXVelocity, mouseYVelocity],
     ([latestX, latestY]) =>
       Math.abs(latestX as number) + Math.abs(latestY as number)
   );
-  const opacity = useTransform(change, [0, 1000], [0, 1]);
+  const opacity = useTransform(change, [0, 900], [0, 1]);
 
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
@@ -83,19 +85,24 @@ function Grid() {
     };
   }, []);
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    setMouse([e.clientX, e.clientY]);
+    // motion values
+    const transition: AnimationOptions<number> = {
+      ease: 'easeOut',
+      duration: 1.4,
+    };
+    animate(mouseX, e.clientX);
+    animate(mouseXEased, e.clientX, transition);
+    animate(mouseY, e.clientY);
+    animate(mouseYEased, e.clientY), transition;
+  };
+
   return (
     <Container
       columns={columns}
       centerMouse={centerMouse}
-      onMouseMove={(e) => {
-        setMouse([e.clientX, e.clientY]);
-        // motion values
-        const transition: AnimationOptions<number> = {
-          ease: 'easeOut',
-        };
-        animate(mouseX, e.clientX, transition);
-        animate(mouseY, e.clientY, transition);
-      }}
+      onMouseMove={(e) => requestAnimationFrame(() => handleMouseMove(e))}
       style={{
         opacity,
       }}
@@ -103,7 +110,7 @@ function Grid() {
       {Array.from({ length: columns * rows })
         .fill('')
         .map((_, i) => (
-          <Cell key={i} mouse={mouse} />
+          <Cell key={i} mouseX={mouseX} mouseY={mouseY} />
         ))}
     </Container>
   );
