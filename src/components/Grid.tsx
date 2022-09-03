@@ -1,9 +1,9 @@
 import styled from '@emotion/styled';
 import {
+  animate,
+  AnimationOptions,
   motion,
-  useMotionTemplate,
   useMotionValue,
-  useTime,
   useTransform,
   useVelocity,
 } from 'framer-motion';
@@ -40,12 +40,22 @@ function Grid() {
   const [rows, setRows] = useState(0);
   const [mouse, setMouse] = useState<Coordinate>([0, 0]);
 
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const mouseXVelocity = useVelocity(mouseX);
+  const mouseYVelocity = useVelocity(mouseY);
+  const change = useTransform(
+    [mouseXVelocity, mouseYVelocity],
+    ([latestX, latestY]) =>
+      Math.abs(latestX as number) + Math.abs(latestY as number)
+  );
+  const opacity = useTransform(change, [0, 1000], [0, 1]);
+
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
 
   const [centerMouse, setCenterMouse] = useState<[number, number]>([0, 0]);
-
-  // const maskPosition = useMotionTemplate``;
 
   useEffect(() => {
     setCenterMouse([mouse[0] - width / 2, mouse[1] - height / 2]);
@@ -73,22 +83,24 @@ function Grid() {
     };
   }, []);
 
-  // determine mouse position
-  useEffect(() => {
-    const calculateMousePosition = (e: globalThis.MouseEvent) => {
-      setMouse([e.clientX, e.clientY]);
-    };
-    window.addEventListener('mousemove', calculateMousePosition);
-    // cleanup
-    return () => {
-      window.removeEventListener('mousemove', calculateMousePosition);
-    };
-  }, []);
-
   return (
-    <Container columns={columns} centerMouse={centerMouse}>
+    <Container
+      columns={columns}
+      centerMouse={centerMouse}
+      onMouseMove={(e) => {
+        setMouse([e.clientX, e.clientY]);
+        // motion values
+        const transition: AnimationOptions<number> = {
+          ease: 'easeOut',
+        };
+        animate(mouseX, e.clientX, transition);
+        animate(mouseY, e.clientY, transition);
+      }}
+      style={{
+        opacity,
+      }}
+    >
       {Array.from({ length: columns * rows })
-        // {Array.from({ length: 1 })
         .fill('')
         .map((_, i) => (
           <Cell key={i} mouse={mouse} />
