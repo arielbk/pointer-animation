@@ -3,12 +3,12 @@ import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Coordinate } from './Grid';
 
-export const CELL_SIZE = 80;
+export const CELL_SIZE = 60;
 
 const Container = styled.div`
   width: ${CELL_SIZE}px;
   height: ${CELL_SIZE}px;
-  border: 1px dashed #333;
+  border: 1px dashed #777;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -16,7 +16,7 @@ const Container = styled.div`
 
 const Content = styled(motion.div)<{ direction: number }>`
   font-size: 2rem;
-  color: #333;
+  color: #777;
   rotate: ${(props) => props.direction + 'deg'};
 `;
 
