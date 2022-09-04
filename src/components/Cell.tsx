@@ -1,7 +1,6 @@
 import styled from '@emotion/styled';
 import { useEffect, useRef, useState } from 'react';
 import { motion, MotionValue, useTransform } from 'framer-motion';
-import { Coordinate } from './Grid';
 
 export const CELL_SIZE = 60;
 
@@ -22,16 +21,19 @@ interface CellProps {
 }
 
 const Cell: React.FC<CellProps> = ({ mouseX, mouseY }) => {
-  const [position, setPosition] = useState<Coordinate>([0, 0]);
+  const [position, setPosition] = useState([0, 0]);
   const ref = useRef<HTMLDivElement>(null);
 
-  const direction = useTransform([mouseX, mouseY], ([newX, newY]) => {
-    const diffY = (newY as number) - position[1];
-    const diffX = (newX as number) - position[0];
-    const angleRadians = Math.atan2(diffY, diffX);
-    const angleDegrees = Math.floor(angleRadians * (180 / Math.PI));
-    return angleDegrees;
-  });
+  const direction = useTransform<number, number>(
+    [mouseX, mouseY],
+    ([newX, newY]) => {
+      const diffY = newY - position[1];
+      const diffX = newX - position[0];
+      const angleRadians = Math.atan2(diffY, diffX);
+      const angleDegrees = Math.floor(angleRadians * (180 / Math.PI));
+      return angleDegrees;
+    }
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -46,9 +48,7 @@ const Cell: React.FC<CellProps> = ({ mouseX, mouseY }) => {
 
   return (
     <Container ref={ref}>
-      <motion.div style={{ pointerEvents: 'none', rotate: direction }}>
-        →
-      </motion.div>
+      <motion.div style={{ rotate: direction }}>→</motion.div>
     </Container>
   );
 };

@@ -31,8 +31,6 @@ const Container = styled(motion.div)<{
   );
 `;
 
-export type Coordinate = [number, number];
-
 function Grid() {
   const [columns, setColumns] = useState(0);
   const [rows, setRows] = useState(0);
@@ -44,16 +42,15 @@ function Grid() {
   const mouseYEased = useMotionValue(0);
   const mouseXVelocity = useVelocity(mouseXEased);
   const mouseYVelocity = useVelocity(mouseYEased);
-  const mouseVelocity = useTransform(
+  const mouseVelocity = useTransform<number, number>(
     [mouseXVelocity, mouseYVelocity],
-    ([latestX, latestY]) =>
-      Math.abs(latestX as number) + Math.abs(latestY as number)
+    ([latestX, latestY]) => Math.abs(latestX) + Math.abs(latestY)
   );
-  const centerMouseX = useTransform(mouseX, (newX) => {
-    return (newX as number) - window.innerWidth / 2;
+  const centerMouseX = useTransform<number, number>(mouseX, (newX) => {
+    return newX - window.innerWidth / 2;
   });
-  const centerMouseY = useTransform(mouseY, (newY) => {
-    return (newY as number) - window.innerHeight / 2;
+  const centerMouseY = useTransform<number, number>(mouseY, (newY) => {
+    return newY - window.innerHeight / 2;
   });
 
   // determine rows and columns
@@ -95,7 +92,7 @@ function Grid() {
   return (
     <Container
       columns={columns}
-      onMouseMove={(e) => handleMouseMove(e)}
+      onMouseMove={handleMouseMove}
       style={{
         opacity,
         WebkitMaskPosition,
