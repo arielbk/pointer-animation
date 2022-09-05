@@ -35,23 +35,26 @@ function Grid() {
   const [columns, setColumns] = useState(0);
   const [rows, setRows] = useState(0);
 
-  // mouse states
+  // mouse position
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  const mouseXEased = useMotionValue(0);
-  const mouseYEased = useMotionValue(0);
-  const mouseXVelocity = useVelocity(mouseXEased);
-  const mouseYVelocity = useVelocity(mouseYEased);
-  const mouseVelocity = useTransform<number, number>(
-    [mouseXVelocity, mouseYVelocity],
-    ([latestX, latestY]) => Math.abs(latestX) + Math.abs(latestY)
-  );
+  // mouse position from center
   const centerMouseX = useTransform<number, number>(mouseX, (newX) => {
     return newX - window.innerWidth / 2;
   });
   const centerMouseY = useTransform<number, number>(mouseY, (newY) => {
     return newY - window.innerHeight / 2;
   });
+  // eased mouse position
+  const mouseXEased = useMotionValue(0);
+  const mouseYEased = useMotionValue(0);
+  // mouse velocity
+  const mouseXVelocity = useVelocity(mouseXEased);
+  const mouseYVelocity = useVelocity(mouseYEased);
+  const mouseVelocity = useTransform<number, number>(
+    [mouseXVelocity, mouseYVelocity],
+    ([latestX, latestY]) => Math.abs(latestX) + Math.abs(latestY)
+  );
 
   // determine rows and columns
   useEffect(() => {
@@ -73,36 +76,43 @@ function Grid() {
     };
   }, []);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    // animate mouse x and y
-    animate(mouseX, e.clientX);
-    animate(mouseY, e.clientY);
-    // animate eased mouse x and y
-    const transition: AnimationOptions<number> = {
-      ease: 'easeOut',
-      duration: 1,
+  // handle mouse move on document
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      // animate mouse x and y
+      animate(mouseX, e.clientX);
+      animate(mouseY, e.clientY);
+      // animate eased mouse x and y
+      const transition: AnimationOptions<number> = {
+        ease: 'easeOut',
+        duration: 1,
+      };
+      animate(mouseXEased, e.clientX, transition);
+      animate(mouseYEased, e.clientY, transition);
     };
-    animate(mouseXEased, e.clientX, transition);
-    animate(mouseYEased, e.clientY, transition);
-  };
+    if (typeof window === 'undefined') return;
+    // recalculate grid on resize
+    window.addEventListener('mousemove', handleMouseMove);
+    // cleanup
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
 
-  const opacity = useTransform(mouseVelocity, [0, 600], [0, 1]);
+  const opacity = useTransform(mouseVelocity, [0, 1000], [0, 1]);
   const WebkitMaskPosition = useMotionTemplate`${centerMouseX}px ${centerMouseY}px`;
 
   return (
     <Container
       columns={columns}
-      onMouseMove={handleMouseMove}
       style={{
         opacity,
         WebkitMaskPosition,
       }}
     >
-      {Array.from({ length: columns * rows })
-        .fill('')
-        .map((_, i) => (
-          <Cell key={i} mouseX={mouseX} mouseY={mouseY} />
-        ))}
+      {Array.from({ length: columns * rows }).map((_, i) => (
+        <Cell key={i} mouseX={mouseX} mouseY={mouseY} />
+      ))}
     </Container>
   );
 }

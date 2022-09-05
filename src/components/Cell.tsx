@@ -7,7 +7,8 @@ export const CELL_SIZE = 60;
 const Container = styled.div`
   width: ${CELL_SIZE}px;
   height: ${CELL_SIZE}px;
-  border: 1px dashed #777;
+  border: 1px dashed #555;
+  color: #777;
   margin: -1px;
   display: flex;
   justify-content: center;
@@ -36,7 +37,6 @@ const Cell: React.FC<CellProps> = ({ mouseX, mouseY }) => {
   );
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
     if (!ref.current) return;
     const rect = ref.current.getBoundingClientRect();
     // center x coordinate
@@ -44,11 +44,11 @@ const Cell: React.FC<CellProps> = ({ mouseX, mouseY }) => {
     // center y coordinate
     const y = rect.top + CELL_SIZE / 2;
     setPosition([x, y]);
-  }, []);
+  }, [ref.current]);
 
   return (
     <Container ref={ref}>
-      <motion.div style={{ rotate: direction }}>→</motion.div>
+      <motion.div style={{ zIndex: 0, rotate: direction }}>→</motion.div>
     </Container>
   );
 };
